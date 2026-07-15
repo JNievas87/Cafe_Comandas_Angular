@@ -1,21 +1,18 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Comanda, EstadoComanda } from '../models/comanda';
 
-// TODO: reemplazar por la URL de tu propio recurso "comandas" creado en MockAPI.io
 const API_URL = 'https://6903dd02d0f10a340b25fb66.mockapi.io/api/v1/comandas/comandas';
 
 @Injectable({ providedIn: 'root' })
 export class ComandaService {
 
-  private http = inject(HttpClient);
-
-  // signal en vez de array normal: sin esto, la pantalla no se refresca sola
-  // porque el proyecto no usa zone.js (arquitectura zoneless)
   comandas = signal<Comanda[]>([]);
 
+  constructor(private http: HttpClient) { }
+
   cargarComandas() {
-    this.http.get<Comanda[]>(API_URL).subscribe((data) => {
+    this.http.get<Comanda[]>(API_URL).subscribe(data => {
       this.comandas.set(data);
     });
   }
@@ -28,9 +25,8 @@ export class ComandaService {
     return this.http.put<Comanda>(API_URL + '/' + id, { estado: estado });
   }
 
-  // actualiza items y/o estado de una comanda que ya existe (se usa para sumar productos)
-  actualizarComanda(id: string, cambios: Partial<Comanda>) {
-    return this.http.put<Comanda>(API_URL + '/' + id, cambios);
+  actualizarItems(id: string, items: Comanda['items'], estado: EstadoComanda) {
+    return this.http.put<Comanda>(API_URL + '/' + id, { items: items, estado: estado });
   }
 
   eliminarComanda(id: string) {

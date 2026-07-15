@@ -37,13 +37,13 @@
     <div class="col-md-6">
       <label class="form-label small fw-semibold">Productos en la comanda</label>
       <div class="list-group">
-        @for (item of items().controls; track $index; let i = $index) {
+        @for (item of items; track $index; let i = $index) {
           <div class="list-group-item d-flex justify-content-between align-items-center py-2">
             <div>
-              <div class="small fw-semibold">{{ nombreProducto(item.value.productoId) }}</div>
+              <div class="small fw-semibold">{{ item.nombre }}</div>
               <div class="small text-muted">
-                x{{ item.value.cantidad }} —
-                {{ item.value.cantidad * precioProducto(item.value.productoId) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                x{{ item.cantidad }} —
+                {{ item.cantidad * item.precioUnitario | currency:'ARS':'symbol-narrow':'1.0-0' }}
               </div>
             </div>
             <button type="button" class="btn btn-sm btn-outline-danger" (click)="quitarItem(i)">✕</button>

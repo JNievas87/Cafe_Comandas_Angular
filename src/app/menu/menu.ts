@@ -10,10 +10,10 @@ import { Producto } from '../models/producto';
   styleUrl: './menu.scss',
 })
 export class Menu {
-  protected readonly categorias: Producto['categoria'][] = ['bebidas', 'comidas', 'postres'];
-  protected readonly productos = PRODUCTOS;
+  categorias: string[] = ['bebidas', 'comidas', 'postres'];
+  productos: Producto[] = PRODUCTOS;
 
-  productosPorCategoria(categoria: Producto['categoria']): Producto[] {
-    return this.productos.filter((p) => p.categoria === categoria);
+  productosPorCategoria(categoria: string): Producto[] {
+    return this.productos.filter(p => p.categoria === categoria);
   }
 }

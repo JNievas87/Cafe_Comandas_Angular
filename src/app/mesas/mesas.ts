@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TableList } from '../table-list/table-list';
 import { OrderPanel } from '../order-panel/order-panel';
 import { NewOrderForm } from '../new-order-form/new-order-form';
@@ -11,8 +11,9 @@ import { ComandaService } from '../services/comanda';
   styleUrl: './mesas.scss',
 })
 export class Mesas implements OnInit {
-  comandaService = inject(ComandaService);
   mesaActual: number | null = null;
+
+  constructor(private comandaService: ComandaService) { }
 
   ngOnInit() {
     this.comandaService.cargarComandas();

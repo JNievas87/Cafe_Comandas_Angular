@@ -8,6 +8,6 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './app.scss',
 })
 export class App {
-  protected readonly title = 'Café Central';
-  protected readonly currentYear = new Date().getFullYear();
+  title = 'Café Central';
+  currentYear = new Date().getFullYear();
 }

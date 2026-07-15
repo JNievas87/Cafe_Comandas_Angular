@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ComandaService } from '../services/comanda';
 import { Comanda } from '../models/comanda';
@@ -10,15 +10,23 @@ import { Comanda } from '../models/comanda';
   styleUrl: './historial.scss',
 })
 export class Historial implements OnInit {
-  comandaService = inject(ComandaService);
+
+  constructor(private comandaService: ComandaService) { }
 
   ngOnInit() {
     this.comandaService.cargarComandas();
   }
 
-  // solo las comandas que ya terminaron su ciclo (pagadas o canceladas)
   comandasFinalizadas(): Comanda[] {
-    return this.comandaService.comandas().filter(c => c.estado === 'pagada' || c.estado === 'cancelada');
+    const finalizadas = this.comandaService.comandas().filter(c => c.estado === 'pagada' || c.estado === 'cancelada');
+
+    finalizadas.sort((a, b) => {
+      const fechaA = new Date(a.fecha).getTime();
+      const fechaB = new Date(b.fecha).getTime();
+      return fechaB - fechaA;
+    });
+
+    return finalizadas;
   }
 
   totalComanda(comanda: Comanda): number {

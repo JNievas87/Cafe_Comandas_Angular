@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ComandaService } from '../services/comanda';
 import { Comanda } from '../models/comanda';
@@ -10,9 +10,10 @@ import { Comanda } from '../models/comanda';
   styleUrl: './order-panel.scss',
 })
 export class OrderPanel {
-  comandaService = inject(ComandaService);
 
   @Input() mesa: number | null = null;
+
+  constructor(private comandaService: ComandaService) { }
 
   comanda(): Comanda | undefined {
     if (!this.mesa) {

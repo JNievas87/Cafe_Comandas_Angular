@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { FormBuilder, FormArray, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component } from '@angular/core';
+import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ComandaService } from '../services/comanda';
 import { PRODUCTOS } from '../data/productos';
@@ -12,23 +12,18 @@ import { Comanda, ItemComanda } from '../models/comanda';
   styleUrl: './new-order-form.scss',
 })
 export class NewOrderForm {
-  fb = inject(FormBuilder);
-  comandaService = inject(ComandaService);
 
   productos = PRODUCTOS;
+  items: ItemComanda[] = [];
   enviando = false;
   error = '';
 
-  form = this.fb.group({
-    mesa: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.max(8)]),
-    items: this.fb.array<FormGroup>([]),
+  form = new FormGroup({
+    mesa: new FormControl<number | null>(null, [Validators.required, Validators.min(1), Validators.max(8)]),
   });
 
-  items(): FormArray {
-    return this.form.get('items') as FormArray;
-  }
+  constructor(private comandaService: ComandaService) { }
 
-  // agrega el producto elegido a la lista de la comanda (columna de la derecha)
   agregarItem(productoIdStr: string, cantidadStr: string, selectEl: HTMLSelectElement, cantidadEl: HTMLInputElement) {
     const productoId = Number(productoIdStr);
     const cantidad = Number(cantidadStr);
@@ -39,32 +34,24 @@ export class NewOrderForm {
     }
 
     this.error = '';
-    const grupo = this.fb.group({
-      productoId: [productoId],
-      cantidad: [cantidad],
-    });
-    this.items().push(grupo);
+    const producto = this.productos.find(p => p.id === productoId);
+    if (producto) {
+      this.items.push({
+        productoId: producto.id,
+        nombre: producto.nombre,
+        cantidad: cantidad,
+        precioUnitario: producto.precio,
+      });
+    }
 
-    // limpio los controles de "agregar producto" para el siguiente
     selectEl.value = '';
     cantidadEl.value = '1';
   }
 
   quitarItem(index: number) {
-    this.items().removeAt(index);
+    this.items.splice(index, 1);
   }
 
-  nombreProducto(id: number): string {
-    const producto = this.productos.find(p => p.id === id);
-    return producto ? producto.nombre : '';
-  }
-
-  precioProducto(id: number): number {
-    const producto = this.productos.find(p => p.id === id);
-    return producto ? producto.precio : 0;
-  }
-
-  // avisa en el formulario si la mesa elegida ya tiene una comanda sin pagar
   mesaTieneComandaActiva(): boolean {
     const mesa = this.form.get('mesa')?.value;
     if (!mesa) {
@@ -82,35 +69,20 @@ export class NewOrderForm {
       return;
     }
 
-    if (this.items().length === 0) {
+    if (this.items.length === 0) {
       this.error = 'Agregá al menos un producto a la comanda.';
       return;
     }
 
-    const raw = this.form.getRawValue();
-    const mesa = raw.mesa!;
+    const mesa = this.form.get('mesa')?.value as number;
 
-    const itemsNuevos: ItemComanda[] = [];
-    for (const item of raw.items) {
-      const producto = this.productos.find(p => p.id === item['productoId']);
-      if (producto) {
-        itemsNuevos.push({
-          productoId: producto.id,
-          nombre: producto.nombre,
-          cantidad: item['cantidad'],
-          precioUnitario: producto.precio,
-        });
-      }
-    }
-
-    // si la mesa ya tiene una comanda pendiente/entregada, sumo los productos ahi
     const comandaExistente = this.comandaService.comandas().find(c => c.mesa === mesa && c.estado !== 'pagada' && c.estado !== 'cancelada');
 
     this.enviando = true;
 
     if (comandaExistente && comandaExistente.id) {
       const itemsCombinados = [...comandaExistente.items];
-      for (const nuevo of itemsNuevos) {
+      for (let nuevo of this.items) {
         const existente = itemsCombinados.find(i => i.productoId === nuevo.productoId);
         if (existente) {
           existente.cantidad = existente.cantidad + nuevo.cantidad;
@@ -119,42 +91,27 @@ export class NewOrderForm {
         }
       }
 
-      this.comandaService.actualizarComanda(comandaExistente.id, {
-        items: itemsCombinados,
-        estado: 'pendiente', // si estaba entregada, vuelve a pendiente porque hay productos nuevos por preparar
-      }).subscribe({
-        next: () => {
-          this.enviando = false;
-          this.comandaService.cargarComandas();
-          this.items().clear();
-          this.form.reset({ mesa: null });
-        },
-        error: () => {
-          this.enviando = false;
-          this.error = 'No se pudo actualizar la comanda.';
-        },
+      this.comandaService.actualizarItems(comandaExistente.id, itemsCombinados, 'pendiente').subscribe(() => {
+        this.enviando = false;
+        this.comandaService.cargarComandas();
+        this.items = [];
+        this.form.reset({ mesa: null });
       });
       return;
     }
 
     const nuevaComanda: Comanda = {
       mesa: mesa,
-      items: itemsNuevos,
+      items: this.items,
       estado: 'pendiente',
       fecha: new Date().toISOString(),
     };
 
-    this.comandaService.crearComanda(nuevaComanda).subscribe({
-      next: () => {
-        this.enviando = false;
-        this.comandaService.cargarComandas();
-        this.items().clear();
-        this.form.reset({ mesa: null });
-      },
-      error: () => {
-        this.enviando = false;
-        this.error = 'No se pudo crear la comanda.';
-      },
+    this.comandaService.crearComanda(nuevaComanda).subscribe(() => {
+      this.enviando = false;
+      this.comandaService.cargarComandas();
+      this.items = [];
+      this.form.reset({ mesa: null });
     });
   }
 }
