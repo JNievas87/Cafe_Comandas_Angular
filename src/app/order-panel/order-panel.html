@@ -1,0 +1,38 @@
+@if (!mesa) {
+  <p class="text-muted">Seleccioná una mesa de la lista para ver su comanda.</p>
+} @else if (comanda(); as c) {
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Mesa {{ mesa }}</span>
+      <span class="badge text-bg-secondary">{{ c.estado }}</span>
+    </div>
+    <div class="card-body">
+      <table class="table">
+        <thead>
+          <tr><th>Producto</th><th>Cant.</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody>
+          @for (item of c.items; track item.productoId) {
+            <tr>
+              <td>{{ item.nombre }}</td>
+              <td>{{ item.cantidad }}</td>
+              <td>{{ item.cantidad * item.precioUnitario | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <p class="fw-bold text-end mb-0">Total: {{ total() | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+    </div>
+    <div class="card-footer d-flex gap-2">
+      @if (c.estado === 'pendiente') {
+        <button class="btn btn-sm btn-success" (click)="marcarEntregada()">Marcar entregada</button>
+      }
+      @if (c.estado === 'entregada') {
+        <button class="btn btn-sm btn-primary" (click)="marcarPagada()">Marcar pagada</button>
+      }
+      <button class="btn btn-sm btn-outline-danger" (click)="cancelar()">Cancelar comanda</button>
+    </div>
+  </div>
+} @else {
+  <p class="text-muted">Mesa {{ mesa }} libre, sin comanda activa.</p>
+}

@@ -1,0 +1,65 @@
+<form [formGroup]="form" (ngSubmit)="enviar()" class="card p-3">
+  <h3 class="h5 mb-3">Nueva comanda</h3>
+
+  <div class="mb-3">
+    <label class="form-label" for="mesa">Mesa</label>
+    <input id="mesa" type="number" class="form-control" formControlName="mesa" min="1" max="8" />
+    @if (form.get('mesa')?.invalid && form.get('mesa')?.touched) {
+      <div class="text-danger small">Ingresá un número de mesa entre 1 y 8.</div>
+    }
+    @if (mesaTieneComandaActiva()) {
+      <div class="alert alert-info py-2 small mt-2 mb-0">
+        Esta mesa ya tiene una comanda activa. Los productos que agregues se van a sumar ahí.
+      </div>
+    }
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label small fw-semibold">Agregar producto</label>
+      <select #productoSelect class="form-select mb-2">
+        <option value="">Elegí un producto</option>
+        @for (producto of productos; track producto.id) {
+          <option [value]="producto.id">
+            {{ producto.nombre }} — {{ producto.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}
+          </option>
+        }
+      </select>
+      <input #cantidadInput type="number" class="form-control mb-2" value="1" min="1" />
+      <button
+        type="button"
+        class="btn btn-outline-primary btn-sm w-100"
+        (click)="agregarItem(productoSelect.value, cantidadInput.value, productoSelect, cantidadInput)">
+        + Agregar a la comanda
+      </button>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label small fw-semibold">Productos en la comanda</label>
+      <div class="list-group">
+        @for (item of items().controls; track $index; let i = $index) {
+          <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+            <div>
+              <div class="small fw-semibold">{{ nombreProducto(item.value.productoId) }}</div>
+              <div class="small text-muted">
+                x{{ item.value.cantidad }} —
+                {{ item.value.cantidad * precioProducto(item.value.productoId) | currency:'ARS':'symbol-narrow':'1.0-0' }}
+              </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="quitarItem(i)">✕</button>
+          </div>
+        } @empty {
+          <div class="list-group-item text-muted small">Todavía no agregaste productos.</div>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (error) {
+    <div class="alert alert-danger py-2 mt-3 mb-0">{{ error }}</div>
+  }
+
+  <button type="submit" class="btn btn-primary mt-3" [disabled]="enviando">
+    {{ enviando ? 'Enviando...' : 'Crear comanda' }}
+  </button>
+</form>

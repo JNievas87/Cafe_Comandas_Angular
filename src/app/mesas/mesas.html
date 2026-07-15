@@ -1,0 +1,14 @@
+<section class="container py-4">
+  <h1 class="mb-4">Mesas ☕</h1>
+  <div class="row g-4">
+    <div class="col-12 col-lg-4">
+      <app-new-order-form />
+    </div>
+    <div class="col-12 col-lg-8">
+      <app-table-list (mesaSeleccionada)="onMesaSeleccionada($event)" />
+      <div class="mt-4">
+        <app-order-panel [mesa]="mesaActual" />
+      </div>
+    </div>
+  </div>
+</section>

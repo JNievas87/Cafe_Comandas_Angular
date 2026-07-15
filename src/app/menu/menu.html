@@ -1,0 +1,21 @@
+<section class="container py-4">
+  <h1 class="mb-4">Nuestro Menú ☕</h1>
+
+  @for (categoria of categorias; track categoria) {
+    <h2 class="h5 text-capitalize mt-4">{{ categoria }}</h2>
+    <div class="row g-3">
+      @for (producto of productosPorCategoria(categoria); track producto.id) {
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h3 class="h6 mb-1">{{ producto.nombre }}</h3>
+              <p class="text-muted mb-0">{{ producto.precio | currency:'ARS':'symbol-narrow':'1.0-0' }}</p>
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <p class="text-muted">No hay productos en esta categoría.</p>
+      }
+    </div>
+  }
+</section>
